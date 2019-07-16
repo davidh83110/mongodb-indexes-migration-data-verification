@@ -46,23 +46,30 @@ class Handler():
 
         return print(set(source_list) - set(target_list))
 
+    
+    def index_diff(self):
+        # TODO
+        pass
+
 
     def index_migrate(self):
-        for indexes in self.source_conn.list_collection_names():
-            for index in self.source_conn.list_indexes(indexes):
-                execute_index = list(index.to_dict()['key'])
+        for col in self.source_conn.list_collection_names():
+            for index in self.source_conn.list_indexes(col):
                 execute_collection = index.to_dict()['ns'].split('.')[1]
+                print(f'starting collection {execute_collection} .....')
 
-                if execute_index[1] == [-1]:
-                    print("-1 index")
-                    self.target_conn.create_index(execute_collection, execute_index[0], pymongo.DESCENDING)
+                if list(index.to_dict()['key'].values()) == [-1]:
+                    pass
+                    # print("-1 index")
+                    # self.target_conn.create_index(execute_collection, execute_index[0], pymongo.DESCENDING)
 
-                elif execute_index[1] == [1]:
-                    print("1 index")
-                    self.target_conn.create_index(execute_collection, execute_index[0], pymongo.ASCENDING)
+                elif list(index.to_dict()['key'].values()) == [1]:
+                    pass
+                    # print("1 index")
+                    # self.target_conn.create_index(execute_collection, execute_index[0], pymongo.ASCENDING)
 
                 else:
-                    print(execute_index, execute_collection)
+                    print(f'exception... {index}, {execute_collection}')
                 
 
 
@@ -74,5 +81,5 @@ if __name__ == "__main__":
     target_uri = Constant.dw3_client
     db = Constant.db
 
-    Handler(source_uri, target_uri, db).count_diff()
+    Handler(source_uri, target_uri, db).index_migrate()
 
