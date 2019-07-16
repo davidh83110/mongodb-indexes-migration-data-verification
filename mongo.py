@@ -24,8 +24,6 @@ class Mongo():
         return self.get_conn().get_collection(collection_name).create_index([(index_name, sorting)])
 
 
-atlas = []
-dw3 = []
 
 class Handler():
     def __init__(self, source, target, db):
@@ -59,9 +57,12 @@ class Handler():
                     print("-1 index")
                     self.target_conn.create_index(execute_collection, execute_index[0], pymongo.DESCENDING)
 
-                else:
+                elif execute_index[1] == [1]:
                     print("1 index")
                     self.target_conn.create_index(execute_collection, execute_index[0], pymongo.ASCENDING)
+
+                else:
+                    print(execute_index, execute_collection)
                 
 
 
