@@ -72,7 +72,7 @@ class Handler():
 if __name__ == "__main__":
     source_uri = Constant.atlas_client
     target_uri = Constant.dw3_client
-    db = 'shopline_dev'
+    db = Constant.db
 
     Handler(source_uri, target_uri, db).count_diff()
 
