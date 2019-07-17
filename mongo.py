@@ -66,6 +66,7 @@ class Handler():
 
         return print(set(source_index_list) - set(target_index_list))
 
+
     def single_index_diff(self, collection_name):
         source_index_list = []
         target_index_list = []
@@ -82,6 +83,22 @@ class Handler():
         return print((set(target_index_list) - set(source_index_list)), (set(source_index_list) - set(target_index_list)))
 
 
+    def single_collection_indexes_migrate(self, collection_name):
+        print(f'collection: {collection_name}')
+        for indexes in list(self.source_conn.index_information(collection_name).values()):
+            to_be_create_indexes = []
+            print(f"""source index: {indexes.get('key')} """)
+
+            for index in indexes.get('key'):
+                list(index)[1] = int(list(index)[1])
+                to_be_create_indexes.append((index[0] , int(list(index)[1])))
+
+            print(f'target index: {to_be_create_indexes}')
+            self.target_conn.create_index(collection_name, to_be_create_indexes) if to_be_create_indexes != [('_id', 1)] else print(f'exception: {to_be_create_indexes}')
+
+        print(f'{collection_name} collection indexes done migrated')
+
+
     def index_migrate(self):
         for col in self.source_conn.list_collection_names():
             print(f'collection: {col}')
@@ -94,7 +111,9 @@ class Handler():
                     to_be_create_indexes.append((index[0] , int(list(index)[1])))
 
                 print(f'target index: {to_be_create_indexes}')
-                self.target_conn.create_index(col, to_be_create_indexes)
+                self.target_conn.create_index(col, to_be_create_indexes) if to_be_create_indexes != [('_id', 1)] else print(f'exception: {to_be_create_indexes}')
+
+            print(f'{col} collection indexes done migrated')
                 
 
 
@@ -107,5 +126,6 @@ if __name__ == "__main__":
     db = Constant.db
 
     # Handler(source_uri, target_uri, db).index_migrate()
+    # Handler(source_uri, target_uri, db).single_index_diff('orders')
+    Handler(source_uri, target_uri, db).single_collection_indexes_migrate('orders')
     Handler(source_uri, target_uri, db).single_index_diff('orders')
-
