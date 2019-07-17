@@ -39,17 +39,29 @@ class Handler():
         target_list = []
 
         for col in self.source_conn.list_collection_names():
-            source_list.append(col+"_"+str(self.source_conn.count_documents(col)))
+            source_list.append(col + "_" + str(self.source_conn.count_documents(col)))
 
         for col in self.target_conn.list_collection_names():
-            target_list.append(col+"_"+str(self.target_conn.count_documents(col)))
+            target_list.append(col + "_" + str(self.target_conn.count_documents(col)))
 
         return print(set(source_list) - set(target_list))
 
     
     def index_diff(self):
-        # TODO
-        pass
+        source_index_list = []
+        target_index_list = []
+
+        for col in self.source_conn.list_collection_names():
+            for index in self.source_conn.list_indexes(col):
+                ## append "{'_id': 1}_orders" as example
+                source_index_list.append(str(index.to_dict()['key']) + "_" + str(index.to_dict()['ns'].split('.')[1]))
+
+        for col in self.target_conn.list_collection_names():
+            for index in self.target_conn.list_indexes(col):
+                ## append "{'_id': 1}_orders" as example
+                target_index_list.append(str(index.to_dict()['key']) + "_" + str(index.to_dict()['ns'].split('.')[1]))
+
+        return print(set(source_index_list) - set(target_index_list))
 
 
     def index_migrate(self):
@@ -77,9 +89,9 @@ class Handler():
 
 
 if __name__ == "__main__":
-    source_uri = Constant.atlas_client
-    target_uri = Constant.dw3_client
+    source_uri = Constant.dw3_client
+    target_uri = Constant.atlas_client
     db = Constant.db
 
-    Handler(source_uri, target_uri, db).index_migrate()
+    Handler(source_uri, target_uri, db).index_diff()
 
