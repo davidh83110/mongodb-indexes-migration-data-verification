@@ -126,6 +126,5 @@ if __name__ == "__main__":
     db = Constant.db
 
     # Handler(source_uri, target_uri, db).index_migrate()
-    # Handler(source_uri, target_uri, db).single_index_diff('orders')
     Handler(source_uri, target_uri, db).single_collection_indexes_migrate('orders')
     Handler(source_uri, target_uri, db).single_index_diff('orders')
