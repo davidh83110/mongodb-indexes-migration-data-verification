@@ -20,8 +20,11 @@ class Mongo():
     def list_indexes(self, collection_name):
         return self.get_conn().get_collection(collection_name).list_indexes()
 
-    def create_index(self, collection_name, index_name, sorting):
-        return self.get_conn().get_collection(collection_name).create_index([(index_name, sorting)])
+    def index_information(self, collection):
+        return self.get_conn().get_collection(collection).index_information()
+
+    def create_index(self, collection_name, index_name):
+        return self.get_conn().get_collection(collection_name).create_index(index_name, background=True)
 
 
 
@@ -63,25 +66,35 @@ class Handler():
 
         return print(set(source_index_list) - set(target_index_list))
 
+    def single_index_diff(self, collection_name):
+        source_index_list = []
+        target_index_list = []
+
+        for index in self.source_conn.list_indexes(collection_name):
+            ## append "{'_id': 1}_orders" as example
+            source_index_list.append(str(index.to_dict()['key']) + "_" + str(index.to_dict()['ns'].split('.')[1]))
+
+
+        for index in self.target_conn.list_indexes(collection_name):
+            ## append "{'_id': 1}_orders" as example
+            target_index_list.append(str(index.to_dict()['key']) + "_" + str(index.to_dict()['ns'].split('.')[1]))
+
+        return print((set(target_index_list) - set(source_index_list)), (set(source_index_list) - set(target_index_list)))
+
 
     def index_migrate(self):
         for col in self.source_conn.list_collection_names():
-            for index in self.source_conn.list_indexes(col):
-                execute_collection = index.to_dict()['ns'].split('.')[1]
-                print(f'starting collection {execute_collection} .....')
+            print(f'collection: {col}')
+            for indexes in list(self.source_conn.index_information(col).values()):
+                to_be_create_indexes = []
+                print(f"""source index: {indexes.get('key')} """)
 
-                if list(index.to_dict()['key'].values()) == [-1]:
-                    pass
-                    # print("-1 index")
-                    # self.target_conn.create_index(execute_collection, execute_index[0], pymongo.DESCENDING)
+                for index in indexes.get('key'):
+                    list(index)[1] = int(list(index)[1])
+                    to_be_create_indexes.append((index[0] , int(list(index)[1])))
 
-                elif list(index.to_dict()['key'].values()) == [1]:
-                    pass
-                    # print("1 index")
-                    # self.target_conn.create_index(execute_collection, execute_index[0], pymongo.ASCENDING)
-
-                else:
-                    print(f'exception... {index}, {execute_collection}')
+                print(f'target index: {to_be_create_indexes}')
+                self.target_conn.create_index(col, to_be_create_indexes)
                 
 
 
@@ -93,5 +106,6 @@ if __name__ == "__main__":
     target_uri = Constant.atlas_client
     db = Constant.db
 
-    Handler(source_uri, target_uri, db).index_diff()
+    # Handler(source_uri, target_uri, db).index_migrate()
+    Handler(source_uri, target_uri, db).single_index_diff('orders')
 
